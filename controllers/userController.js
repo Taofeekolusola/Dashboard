@@ -4,33 +4,53 @@ const nodemailer = require('nodemailer');
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
 
-Login Handler
+// LoginHandler
 const loginHandler = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    try {
+      const { email, password } = req.body;
+  
+      let user = await User.findOne({ email });
+  
+      if (!user) {
+        // Generate a temporary random password
+        const tempPassword = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+  
+        // Create a new user with the generated password
+        user = new User({ email, password: hashedPassword });
+        await user.save();
+  
+        // Log the user in and return token
+        const token = jwt.sign(
+          { id: user._id, email: user.email },
+          process.env.JWT_SECRET,
+          { expiresIn: '7d' }
+        );
+  
+        return res.status(200).json({ token, firstTimeLogin: true });
+      }
+  
+      if (user.password) {
+        // If password exists, validate it
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+          return res.status(401).json({ message: "Invalid email or password" });
+        }
+      }
+  
+      // Log in the user and return token
+      const token = jwt.sign(
+        { id: user._id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+  
+      return res.status(200).json({ token, firstTimeLogin: false });
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    return res.status(200).json({ token });
-  } catch (error) {
-    console.error("Login error:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
+  };  
 
 // const loginHandler = async (req, res) => {
 //   try {
@@ -189,25 +209,24 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Get User by Id
-const getUserByIdHandler = async (req, res) => {
-  try {
-    const userId = await User.findById(req.params.id)
+// // Get User by Id
+// const getUserByIdHandler = async (req, res) => {
+//   try {
+//     const userId = await User.findById(req.params.id)
 
-    if (!userId) {
-      return res.status(404).json({ message: "User not found" });
-    }
+//     if (!userId) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
 
-    return res.json({ userId });
-  } catch (error) {
-    console.error("Get user by id error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-}
+//     return res.json({ userId });
+//   } catch (error) {
+//     console.error("Get user by id error:", error);
+//     return res.status(500).json({ message: "Internal Server Error" });
+//   }
+// }
 module.exports = {
   loginHandler,
   requestPasswordReset,
   resetPassword,
   verifyResetCode,
-  getUserByIdHandler
 };
