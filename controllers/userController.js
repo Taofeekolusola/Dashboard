@@ -12,11 +12,10 @@ const loginHandler = async (req, res) => {
       let user = await User.findOne({ email });
   
       if (!user) {
-        // Generate a temporary random password
-        const tempPassword = Math.random().toString(36).slice(-8);
-        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        // Hash the provided password
+        const hashedPassword = await bcrypt.hash(password, 10);
   
-        // Create a new user with the generated password
+        // Create a new user with the provided password
         user = new User({ email, password: hashedPassword });
         await user.save();
   
@@ -30,12 +29,10 @@ const loginHandler = async (req, res) => {
         return res.status(200).json({ token, firstTimeLogin: true });
       }
   
-      if (user.password) {
-        // If password exists, validate it
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-          return res.status(401).json({ message: "Invalid email or password" });
-        }
+      // If the user exists, validate the password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid email or password" });
       }
   
       // Log in the user and return token
@@ -46,11 +43,13 @@ const loginHandler = async (req, res) => {
       );
   
       return res.status(200).json({ token, firstTimeLogin: false });
+  
     } catch (error) {
       console.error("Login error:", error);
       return res.status(500).json({ message: "Internal server error" });
     }
-  };  
+  };
+    
 
 // const loginHandler = async (req, res) => {
 //   try {
