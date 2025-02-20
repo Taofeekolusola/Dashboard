@@ -129,7 +129,7 @@ const requestPasswordReset = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const resetCode = crypto.randomInt(10000, 99999).toString();
+    const resetCode = crypto.randomInt(100000, 999999).toString();
     const expiresAt = Date.now() + 3600000; // 1-hour expiry
 
     user.resetPasswordToken = resetCode;
