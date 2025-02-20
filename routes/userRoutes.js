@@ -6,13 +6,16 @@ const {
     requestPasswordReset,
     resetPassword,
     verifyResetCode,
+    registerHandler,
+  
 } = require('../controllers/userController');
 
 route.post('/login', loginHandler);
 route.post('/verify', verifyResetCode)
 route.post('/reset', resetPassword)
 route.post('/request', requestPasswordReset)
-route.post('/reset', validation, (req, res) => {
+route.post('/register', registerHandler);
+route.post('/', validation, (req, res) => {
     res.json(req.user)
 })
 module.exports = route;
