@@ -1,25 +1,30 @@
-const express = require('express');
+require("dotenv").config(); // Load environment variables
+const express = require("express");
+const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
+const connectDB = require("./db");
+
 const app = express();
-const cors = require('cors');
-const connectDB = require('./db')
 
-// Import routes
-const userRoutes = require('./routes/userRoutes');
+// ✅ Ensure the 'uploads' folder exists
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-// Connect to MongoDB
-connectDB();
+// ✅ Middleware
+app.use(express.json()); // Parse JSON request bodies
+app.use(cors()); // Enable CORS
+app.use("/uploads", express.static(uploadDir)); // Serve uploaded files
 
-// Middleware to parse JSON request bodies
-app.use(express.json());
+// ✅ Connect to MongoDB
+connectDB()
 
-// Middleware to enable CORS
-app.use(cors());
+// ✅ Import and use routes
+const userRoutes = require("./routes/userRoutes");
+app.use("/users", userRoutes);
 
-// Use routes
-app.use('/users', userRoutes);
-
-// connect port from .env
-const port = process.env.PORT || 5000;
-
-// APP LISTENS ON 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+// ✅ Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
