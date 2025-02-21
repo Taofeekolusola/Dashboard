@@ -3,6 +3,7 @@ const User = require("../models/Users");
 const nodemailer = require('nodemailer');
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
+const { sendOtpEmail, sendEmail } = require('../utils/senOtpEmail');
 
 
 //Register a User
@@ -86,76 +87,20 @@ const loginHandler = async (req, res) => {
     }
 };
 
-// const verifyLoginHandler = async (req, res) => {
-//     try {
-//         const { email, otp } = req.body;
-//         const user = await User.findOne({ email });
-
-//         if (!user || !user.otp) {
-//             return res.status(400).json({ message: "Invalid or expired OTP" });
-//         }
-
-//         // Hash the entered OTP and compare with stored OTP
-//         const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
-
-//         if (hashedOtp !== user.otp || user.otpExpires < Date.now()) {
-//             return res.status(400).json({ message: "Invalid or expired OTP" });
-//         }
-
-//         // OTP is valid, clear OTP fields
-//         user.otp = undefined;
-//         user.otpExpires = undefined;
-//         await user.save();
-
-//         // Generate JWT token
-//         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-//         return res.json({
-//             token,
-//             email,
-//             role: user.role,
-//             profilePicture: user.profilePicture
-//         });
-
-//     } catch (error) {
-//         console.error("OTP Verification error:", error);
-//         return res.status(500).json({ message: "Internal server error" });
-//     }
-// };
-
-const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-
 const verifyLoginHandler = async (req, res) => {
     try {
         const { email, otp } = req.body;
         const user = await User.findOne({ email });
 
-        if (!user) {
-            return res.status(400).json({ message: "User not found" });
+        if (!user || !user.otp) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
         }
 
-        // Check if OTP is expired
-        if (!user.otp || user.otpExpires < Date.now()) {
-            // Generate a new OTP
-            const newOtp = generateOTP();
-            const hashedOtp = crypto.createHash("sha256").update(newOtp).digest("hex");
-
-            // Set new OTP and expiry (2 minutes from now)
-            user.otp = hashedOtp;
-            user.otpExpires = Date.now() + 2 * 60 * 1000;
-            await user.save();
-
-            // Send the new OTP to the user's email (You need an email service for this)
-            console.log(`New OTP sent to ${email}: ${newOtp}`); // Replace with actual email sending logic
-
-            return res.status(400).json({ message: "OTP expired. A new OTP has been sent to your email." });
-        }
-
-        // Hash entered OTP and compare with stored OTP
+        // Hash the entered OTP and compare with stored OTP
         const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-        if (hashedOtp !== user.otp) {
-            return res.status(400).json({ message: "Invalid OTP." });
+        if (hashedOtp !== user.otp || user.otpExpires < Date.now()) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
         }
 
         // OTP is valid, clear OTP fields
@@ -166,12 +111,7 @@ const verifyLoginHandler = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        return res.json({
-            token,
-            email,
-            role: user.Role,
-            profilePicture: user.profilePicture
-        });
+        return res.json({ token, email }); 
 
     } catch (error) {
         console.error("OTP Verification error:", error);
@@ -179,25 +119,34 @@ const verifyLoginHandler = async (req, res) => {
     }
 };
 
-// Send Email Helper Function
-const sendEmail = async (email, resetCode) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+//Resend Otp code
+const resendOtpHandler = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Password Reset Code",
-    html: `<p>Your password reset code is: <strong>${resetCode}</strong></p>
-           <p>Use this code to reset your password. The code expires in 1 hour.</p>`,
-  };
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-  await transporter.sendMail(mailOptions);
+        // Generate new OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+
+        // Update OTP and expiry time (2 minutes)
+        user.otp = hashedOtp;
+        user.otpExpires = Date.now() + 2 * 60 * 1000;
+        await user.save();
+
+        // Send OTP email using reusable function
+        await sendOtpEmail(email, otp);
+
+        return res.json({ message: "OTP resent successfully" });
+
+    } catch (error) {
+        console.error("Resend OTP error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 };
 
 // Request Password Reset
@@ -269,6 +218,35 @@ const verifyResetCode = async (req, res) => {
   }
 };
 
+const resendResetCodeHandler = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Generate new reset code
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedResetCode = crypto.createHash("sha256").update(resetCode).digest("hex");
+
+        // Update reset code and expiry (2 minutes)
+        user.resetPasswordToken = hashedResetCode;
+        user.resetPasswordExpiresAt = Date.now() + 2 * 60 * 1000;
+        await user.save();
+
+        // Send reset code via email
+        await sendResetEmail(email, resetCode);
+
+        return res.json({ message: "Reset code resent successfully" });
+
+    } catch (error) {
+        console.error("Resend Reset Code error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 // Reset Password
 const resetPassword = async (req, res) => {
   try {
@@ -327,5 +305,8 @@ module.exports = {
     requestPasswordReset,
     resetPassword,
     verifyResetCode,
-    verifyLoginHandler
+    verifyLoginHandler,
+    resendOtpHandler,
+    resendResetCodeHandler,
+    // getUserByIdHandler,
 };

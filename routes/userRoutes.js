@@ -8,7 +8,10 @@ const {
     resetPassword,
     verifyResetCode,
     registerHandler,
-    verifyLoginHandler
+    verifyLoginHandler,
+    resendOtpHandler,
+    resendResetCodeHandler,
+    // getUserByIdHandler,
   
 } = require('../controllers/userController');
 
@@ -30,6 +33,8 @@ route.post('/reset', resetPassword)
 route.post('/request', requestPasswordReset)
 route.post("/register", upload.single("profilePicture"), registerHandler);
 route.post('/verify-login', verifyLoginHandler);
+route.post('/resend-otp', resendOtpHandler);
+route.post('/resend-reset-code', resendResetCodeHandler);
 route.post('/', validation, (req, res) => {
     res.json(req.user)
 })
