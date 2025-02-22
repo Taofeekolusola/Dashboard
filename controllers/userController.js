@@ -3,7 +3,7 @@ const User = require("../models/Users");
 const nodemailer = require('nodemailer');
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
-const { sendOtpEmail, sendEmail } = require('../utils/senOtpEmail');
+const { sendOtpEmail, sendEmail, sendResetEmail } = require('../utils/senOtpEmail');
 
 
 //Register a User
@@ -111,7 +111,12 @@ const verifyLoginHandler = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        return res.json({ token, email }); 
+        return res.json({
+            token,
+            email,
+            role: user.role,
+            profilePicture: user.profilePicture
+        }); 
 
     } catch (error) {
         console.error("OTP Verification error:", error);

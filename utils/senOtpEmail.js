@@ -42,7 +42,18 @@ const sendOtpEmail = async (email, otp) => {
     });
 };
 
+// Function to send OTP email
+const sendResetEmail = async (email, resetCode) => {
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Your reset Code is resent",
+        text: `Your OTP code is: ${resetCode}. It expires in 2 minutes.`
+    });
+};
+
 module.exports = {
     sendOtpEmail,
-    sendEmail
+    sendEmail,
+    sendResetEmail,
  } ;
