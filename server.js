@@ -22,7 +22,7 @@ app.use("/uploads", express.static(uploadDir)); // Serve uploaded files
 connectDB()
 
 // ✅ Import and use routes
-const userRoutes = require("./routes/userRoutes");
+const userRoutes = require("./routes/adminRoutes");
 app.use("/users", userRoutes);
 
 // ✅ Start the server
