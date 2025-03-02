@@ -22,8 +22,10 @@ app.use("/uploads", express.static(uploadDir)); // Serve uploaded files
 connectDB()
 
 // ✅ Import and use routes
-const userRoutes = require("./routes/adminRoutes");
+const userRoutes = require("./routes/userRoutes");
+const savingsRoutes = require("./routes/savingRoutes");
 app.use("/users", userRoutes);
+app.use("/savings", savingsRoutes);
 
 // ✅ Start the server
 const PORT = process.env.PORT || 5000;

@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema({
           enum: ['SuperAdmin', 'FinancialOfficers', "ComplianceOfficers", "FinancialOfficers" ],
           default: 'SuperAdmin',
         },
+        status: {
+          type: String,
+          enum: ['active', 'inactive', 'cancelled'],
+          default: 'active',
+        },
         profilePicture: {
           type: String,
           default: 'default.png',
