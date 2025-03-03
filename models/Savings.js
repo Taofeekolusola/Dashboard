@@ -27,7 +27,7 @@ const savingsSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ['ongoing', 'completed'],
-        default: 'active',
+        default: 'ongoing',
     },
     startDate: {
         type: Date,
