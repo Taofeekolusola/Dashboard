@@ -24,8 +24,12 @@ connectDB()
 // ✅ Import and use routes
 const userRoutes = require("./routes/userRoutes");
 const savingsRoutes = require("./routes/savingRoutes");
+const investmentRoutes = require("./routes/investmentRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
 app.use("/users", userRoutes);
 app.use("/savings", savingsRoutes);
+app.use("/investments", investmentRoutes);
+app.use("/transactions", transactionRoutes);
 
 // ✅ Start the server
 const PORT = process.env.PORT || 5000;

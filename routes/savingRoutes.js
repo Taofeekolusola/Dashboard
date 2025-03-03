@@ -14,6 +14,6 @@ route.get('/user/:userId', validation, getAllSavingsPlansForUser);
 route.get('/get/:savingsId', validation, getSavingsPlanById);
 route.put('/update/:savingsId', validation, updateSavingsPlan);
 route.delete('/delete/:savingsId', validation, deleteSavingsPlan);
-route.get('/', validation, getAllSavingsPlansForAllUsers);
+route.get('/all', validation, getAllSavingsPlansForAllUsers);
 
 module.exports = route;

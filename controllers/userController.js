@@ -290,7 +290,7 @@ const resetPassword = async (req, res) => {
 };
 
 //Get the number of total active users
-const getTotalUsers = async (req, res) => {
+const getTotalActiveUsers = async (req, res) => {
   try {
     const activeUsersCount = await User.countDocuments({ status: "active" });
     res.json({ totalActiveUsers: activeUsersCount });
@@ -318,5 +318,7 @@ module.exports = {
     verifyLoginHandler,
     resendOtpHandler,
     resendResetCodeHandler,
-    // getUserByIdHandler,
+  // getUserByIdHandler,
+    getTotalActiveUsers,
+    getTotalInactiveUsers,
 };
