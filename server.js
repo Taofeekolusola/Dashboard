@@ -22,11 +22,11 @@ app.use("/uploads", express.static(uploadDir)); // Serve uploaded files
 connectDB()
 
 // ✅ Import and use routes
-const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/admin.routes");
 const savingsRoutes = require("./routes/savingRoutes");
 const investmentRoutes = require("./routes/investmentRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
-app.use("/users", userRoutes);
+app.use("/users", adminRoutes);
 app.use("/savings", savingsRoutes);
 app.use("/investments", investmentRoutes);
 app.use("/transactions", transactionRoutes);
