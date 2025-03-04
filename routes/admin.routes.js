@@ -13,7 +13,7 @@ const {
     resendResetCodeHandler,
     // getUserByIdHandler,
   
-} = require('../controllers/userController');
+} = require('../controllers/admin.controllers');
 
 // ✅ Define Multer Storage for Profile Picture
 const storage = multer.diskStorage({

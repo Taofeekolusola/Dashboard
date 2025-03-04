@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/Users'); // Ensure correct model import
+const User = require('../models/admin.model'); // Ensure correct model import
 const mongoose = require('mongoose');
 
 const validation = async (req, res, next) => {

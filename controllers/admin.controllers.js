@@ -1,20 +1,20 @@
 const bcrypt = require("bcryptjs");
-const User = require("../models/Users");
+const Admin = require("../models/admin.model");
 const nodemailer = require('nodemailer');
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
 const { sendOtpEmail, sendEmail, sendResetEmail } = require('../utils/senOtpEmail');
 
 
-//Register a User
+//Register a Admin
 const registerHandler = async (req, res) => {
     try {
       const { email, password, role } = req.body;
   
       // ✅ Check if user already exists
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+      const existingAdmin = await Admin.findOne({ email });
+      if (existingAdmin) {
+        return res.status(400).json({ message: "Admin already exists" });
       }
   
       // ✅ Hash password
@@ -26,11 +26,11 @@ const registerHandler = async (req, res) => {
         profilePicture = `/uploads/${req.file.filename}`;
       }
   
-      // ✅ Create and Save User
-      const newUser = new User({ email, password: hashedPassword, role, profilePicture });
-      await newUser.save();
+      // ✅ Create and Save Admin
+      const newAdmin = new Admin({ email, password: hashedPassword, role, profilePicture });
+      await newAdmin.save();
   
-      res.status(201).json({ message: "User created successfully", user: newUser });
+      res.status(201).json({ message: "Admin created successfully", user: newAdmin });
     } catch (error) {
       console.error("Register error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -50,10 +50,10 @@ const transporter = nodemailer.createTransport({
 const loginHandler = async (req, res) => { 
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const user = await Admin.findOne({ email });
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "Admin not found" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -90,7 +90,7 @@ const loginHandler = async (req, res) => {
 const verifyLoginHandler = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        const user = await User.findOne({ email });
+        const user = await Admin.findOne({ email });
 
         if (!user || !user.otp) {
             return res.status(400).json({ message: "Invalid or expired OTP" });
@@ -128,10 +128,10 @@ const verifyLoginHandler = async (req, res) => {
 const resendOtpHandler = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email });
+        const user = await Admin.findOne({ email });
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "Admin not found" });
         }
 
         // Generate new OTP
@@ -158,10 +158,10 @@ const resendOtpHandler = async (req, res) => {
 const requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    const user = await Admin.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Admin not found" });
     }
 
     const resetCode = crypto.randomInt(100000, 999999).toString();
@@ -186,7 +186,7 @@ const verifyResetCode = async (req, res) => {
   try {
     const { resetCode } = req.body;
 
-    const user = await User.findOne({ resetPasswordToken: resetCode });
+    const user = await Admin.findOne({ resetPasswordToken: resetCode });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid reset code." });
@@ -226,10 +226,10 @@ const verifyResetCode = async (req, res) => {
 const resendResetCodeHandler = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email });
+        const user = await Admin.findOne({ email });
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "Admin not found" });
         }
 
         // Generate new reset code
@@ -268,10 +268,10 @@ const resetPassword = async (req, res) => {
     // }
 
     // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({ email });
+    const user = await Admin.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Admin not found" });
     }
 
     if (password !== confirmPassword) {
@@ -290,20 +290,20 @@ const resetPassword = async (req, res) => {
 };
 
 //Get the number of total active users
-const getTotalActiveUsers = async (req, res) => {
+const getTotalActiveAdmins = async (req, res) => {
   try {
-    const activeUsersCount = await User.countDocuments({ status: "active" });
-    res.json({ totalActiveUsers: activeUsersCount });
+    const activeAdminsCount = await Admin.countDocuments({ status: "active" });
+    res.json({ totalActiveAdmins: activeAdminsCount });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
 //Get totaal inactive users
-const getTotalInactiveUsers = async (req, res) => {
+const getTotalInactiveAdmins = async (req, res) => {
   try {
-    const inactiveUsersCount = await User.countDocuments({ status: "inactive" });
-    res.json({ totalInactiveUsers: inactiveUsersCount });
+    const inactiveAdminsCount = await Admin.countDocuments({ status: "inactive" });
+    res.json({ totalInactiveAdmins: inactiveAdminsCount });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -318,7 +318,7 @@ module.exports = {
     verifyLoginHandler,
     resendOtpHandler,
     resendResetCodeHandler,
-  // getUserByIdHandler,
-    getTotalActiveUsers,
-    getTotalInactiveUsers,
+  // getAdminByIdHandler,
+    getTotalActiveAdmins,
+    getTotalInactiveAdmins,
 };
