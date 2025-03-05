@@ -23,11 +23,11 @@ connectDB()
 
 // ✅ Import and use routes
 const adminRoutes = require("./routes/admin.routes");
-const savingsRoutes = require("./routes/savingRoutes");
-const investmentRoutes = require("./routes/investmentRoutes");
-const transactionRoutes = require("./routes/transactionRoutes");
+const savingsRoutes = require("./routes/savings-plan.routes");
+const investmentRoutes = require("./routes/investments.routes");
+const transactionRoutes = require("./routes/transactions.routes");
 app.use("/users", adminRoutes);
-app.use("/savings", savingsRoutes);
+app.use("/savings-plan", savingsRoutes);
 app.use("/investments", investmentRoutes);
 app.use("/transactions", transactionRoutes);
 
