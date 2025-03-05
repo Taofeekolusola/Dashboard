@@ -8,7 +8,7 @@ const {
 } = require('../controllers/investments.controllers');
 
 route.post('/search', validation, isAdmin, searchInvestments);
-route.post('/transactions/search', validation, fetchInvestmentTransactions);
+route.post('/transactions/search', validation, isAdmin, fetchInvestmentTransactions);
 route.get('/:investmentId', validation, );
 
 module.exports = route;
