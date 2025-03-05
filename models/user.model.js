@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
+const { Schema, Types } = mongoose;
 
-const userSchema = new mongoose.Schema(
+const userSchema = new Schema(
   {
     fullName: {
       type: String,
@@ -16,14 +17,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
-    bvn: {
+    linkedBankName: {
       type: String,
-      unique: true,
     },
-    kycStatus: {
+    linkedBankAccNumber: {
+      type: Number,
+    },
+    status: {
       type: String,
-      enum: ["PENDING", "VERIFIED", "REJECTED"],
-      default: "PENDING",
+      enum: ["Active", "Inactive"],
+      default: "Inactive"
     },
   },
   {
@@ -31,6 +34,4 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model("User", userSchema);
-
-export default User;
+module.exports = mongoose.model("User", userSchema);
