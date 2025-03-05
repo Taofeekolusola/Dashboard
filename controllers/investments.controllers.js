@@ -46,15 +46,36 @@ const searchInvestments = async (req, res) => {
 
     const total = await Investment.countDocuments(query);
 
+    const investmentIds = investments.map(investment => investment._id);
+    const transactionsMap = {};
+
+    const transactions = await Transaction.find({ relatedEntity: "Investment", relatedEntityId: { $in: investmentIds } })
+      .sort({ createdAt: -1 })
+      .limit(3 * investments.length);
+
+    transactions.forEach(transaction => {
+      if (!transactionsMap[transaction.relatedEntityId]) {
+        transactionsMap[transaction.relatedEntityId] = [];
+      }
+      if (transactionsMap[transaction.relatedEntityId].length < 3) {
+        transactionsMap[transaction.relatedEntityId].push(transaction);
+      }
+    });
+
+    const investmentsWithTransactions = investments.map(investment => ({
+      ...investment.toObject(),
+      recentTransactions: transactionsMap[investment._id] || [],
+    }));
+
     res.status(200).json({
       success: true,
       message: "Investments retrieved successfully!",
-      data: investments,
+      data: investmentsWithTransactions,
       pagination: paginate(total, page, limit),
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Internal server error"});
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
